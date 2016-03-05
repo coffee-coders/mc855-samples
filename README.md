@@ -5,6 +5,18 @@
 docker run -p 8088:8088 -p 50070:50070 -it sequenceiq/hadoop-docker:2.7.0 /etc/bootstrap.sh -bash
 ```
 
+# Build project
+```shell
+mvn clean compile package
+```
+
+# Copy project do container
+```shell
+docker ps # discover the container_id
+
+docker cp target/mc855-sample-*.jar <container_id>:/sample1.jar
+```
+
 ## Run samples
 Samples:
  - word-count
