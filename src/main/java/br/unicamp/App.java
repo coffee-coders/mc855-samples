@@ -6,7 +6,7 @@ public class App {
     String[] newArgs = new String[]{args[1], args[2]};
     switch (args[0]) {
         case "word-count": {
-            Sample1.main(newArgs);
+            WordCount.main(newArgs);
             break;
         }
         case "letter-count": {

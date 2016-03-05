@@ -14,7 +14,7 @@ import org.apache.hadoop.mapreduce.lib.input.FileInputFormat;
 import org.apache.hadoop.mapreduce.lib.output.FileOutputFormat;
 import org.apache.hadoop.util.GenericOptionsParser;
 
-public class WordCount {
+public class Sample1 {
 
   public static class TokenizerMapper 
        extends Mapper<Object, Text, Text, IntWritable>{
@@ -56,7 +56,7 @@ public class WordCount {
       System.exit(2);
     }
     Job job = Job.getInstance(conf, "word count");
-    job.setJarByClass(WordCount.class);
+    job.setJarByClass(Sample1.class);
     job.setMapperClass(TokenizerMapper.class);
     job.setCombinerClass(IntSumReducer.class);
     job.setReducerClass(IntSumReducer.class);
