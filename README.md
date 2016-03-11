@@ -2,7 +2,7 @@
 
 ## Run hadoop using docker
 ```shell
-docker run -p 8088:8088 -p 50070:50070 -it sequenceiq/hadoop-docker:2.7.0 /etc/bootstrap.sh -bash
+docker run --name hadoop -p 8088:8088 -p 50070:50070 -it sequenceiq/hadoop-docker:2.7.0 /etc/bootstrap.sh -bash
 ```
 
 # Build project
@@ -14,7 +14,7 @@ mvn clean compile package
 ```shell
 docker ps # discover the container_id
 
-docker cp target/mc855-sample-*.jar <container_id>:/sample1.jar
+docker cp target/mc855-sample-*.jar hadoop:/sample1.jar
 ```
 
 ## Run samples
@@ -24,6 +24,7 @@ Samples:
  - letter-frequency-count
 
 ```shell
-bin/hadoop jar /sample1.jar letter-frequency-count input output
-bin/hdfs dfs -cat output/part-r-00000 | awk  '{print $2 " " $1}' | sort -n
+cd /usr/local/hadoop/bin
+./hadoop jar /sample1.jar letter-frequency-count input output
+./hdfs dfs -cat output/part-r-00000 | awk  '{print $2 " " $1}' | sort -n
 ```
