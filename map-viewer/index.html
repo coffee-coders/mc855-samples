@@ -1,0 +1,53 @@
+<!DOCTYPE html>
+<html>
+  <head>
+    <meta name="viewport" content="initial-scale=1.0, user-scalable=no">
+    <meta charset="utf-8">
+    <title>Circles</title>
+    <style>
+      html, body {
+        height: 100%;
+        margin: 0;
+        padding: 0;
+      }
+      #map {
+        height: 100%;
+      }
+    </style>
+  </head>
+  <body>
+    <div id="map"></div>
+    <script>
+      var xmlHttp = new XMLHttpRequest();
+      xmlHttp.open('GET', '/data', false );
+      xmlHttp.send();
+      var crimemap = JSON.parse(xmlHttp.response);
+
+      function initMap() {
+        // Create the map.
+        var map = new google.maps.Map(document.getElementById('map'), {
+          zoom: 13,
+          center: {lat: 37.762042, lng: -122.449191},
+          mapTypeId: google.maps.MapTypeId.TERRAIN
+        });
+
+        for (var crime in crimemap) {
+          // Add the circle for this city to the map.
+          var cityCircle = new google.maps.Circle({
+            strokeColor: crimemap[crime].color,
+            strokeOpacity: 0.5,
+            strokeWeight: 1,
+            fillColor: crimemap[crime].color,
+            fillOpacity: 0.35,
+            map: map,
+            center: crimemap[crime].center,
+            radius: crimemap[crime].radius
+          });
+        }
+      }
+    </script>
+    <script async defer
+    src="https://maps.googleapis.com/maps/api/js?key=AIzaSyBRDmBHmlFixNe-BmvPrCJgdpEQuhHCrLQ&callback=initMap">
+    </script>
+  </body>
+</html>
