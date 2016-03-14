@@ -28,3 +28,11 @@ cd /usr/local/hadoop/bin
 ./hadoop jar /sample1.jar letter-frequency-count input output
 ./hdfs dfs -cat output/part-r-00000 | awk  '{print $2 " " $1}' | sort -n
 ```
+
+## Run map-viewer
+Map viewer creates circles on map based on the data in the [data.json](map-viewer/data.json) file.
+
+The map can be accessed on localhost:8080. To start the server run:
+```shell
+node server.js
+```
