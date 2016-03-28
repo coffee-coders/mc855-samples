@@ -115,7 +115,7 @@ public class CrimesCount {
         }
     }
 
-    public static class Part1Reducer extends Reducer<Text, Text, Text, String> {
+    public static class Part1Reducer extends Reducer<Text, Text, Text, Text> {
         private Text wordKey = new Text();
 
         public void reduce(Text key, Iterable<Text> values, Context context) throws IOException, InterruptedException {
@@ -135,7 +135,7 @@ public class CrimesCount {
 
                             wordKey.set(point.x + "_" + point.y);
                             try {
-                                context.write(key, wordKey + "_" + new IntWritable(friends));
+                                context.write(key, new Text(wordKey + "_" + new IntWritable(friends)));
                             } catch (Exception e) {
                                 throw new RuntimeException(e);
                             }
@@ -143,7 +143,7 @@ public class CrimesCount {
             }
         }
     }
-    
+
     //Identity mapper
     public static class Part2Mapper extends Mapper<Text, Text, Text, Text> {
         public void map(Text key, Text value, Context context) throws IOException, InterruptedException {
@@ -151,7 +151,7 @@ public class CrimesCount {
         }
     }
 
-    public static class Part2Reducer extends Reducer<Text, Text, Text, String> {
+    public static class Part2Reducer extends Reducer<Text, Text, Text, Text> {
         private Text wordKey = new Text();
 
         public void reduce(Text key, Iterable<Text> values, Context context) throws IOException, InterruptedException {
@@ -175,7 +175,7 @@ public class CrimesCount {
                 	Point point = max.get();
 	                wordKey.set(point.x + "_" + point.y);
 	                try {
-	                    context.write(key, wordKey + "_" + new IntWritable(point.crimeCount));
+	                    context.write(key, new Text(wordKey + "_" + new IntWritable(point.crimeCount)));
 	                } catch (Exception e) {
 	                    throw new RuntimeException(e);
 	                }
@@ -203,7 +203,7 @@ public class CrimesCount {
         job.setCombinerClass(Part1Reducer.class);
         job.setReducerClass(Part1Reducer.class);
         job.setOutputKeyClass(Text.class);
-        job.setOutputValueClass(String.class);
+        job.setOutputValueClass(Text.class);
         FileInputFormat.addInputPath(job, new Path(input));
         FileOutputFormat.setOutputPath(job, new Path(output));
 
@@ -217,10 +217,10 @@ public class CrimesCount {
          job.setCombinerClass(Part2Reducer.class);
          job.setReducerClass(Part2Reducer.class);
          job.setOutputKeyClass(Text.class);
-         job.setOutputValueClass(IntWritable.class);
+         job.setOutputValueClass(Text.class);
          FileInputFormat.addInputPath(job, new Path(input));
          FileOutputFormat.setOutputPath(job, new Path(output));
-        
+
          job.waitForCompletion(true);
     }
 }
