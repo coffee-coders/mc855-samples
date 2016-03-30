@@ -33,8 +33,12 @@ public class CrimesCount {
             String[] columns = value.toString().split(",");
 
             wordKey.set(columns[1]); // crime
-            wordValue.set(columns[8] + "_" + columns[7]); // X_Y
-            context.write(wordKey, wordValue);
+            try {
+                wordValue.set(Double.valueOf(columns[8]) + "_" + Double.valueOf(columns[7])); // X_Y
+                context.write(wordKey, wordValue);
+            } catch (Exception e) {
+                //do nothing
+            }
         }
     }
 
