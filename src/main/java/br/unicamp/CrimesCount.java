@@ -9,6 +9,7 @@ import org.apache.hadoop.mapreduce.Mapper;
 import org.apache.hadoop.mapreduce.Reducer;
 import org.apache.hadoop.mapreduce.lib.input.FileInputFormat;
 import org.apache.hadoop.mapreduce.lib.output.FileOutputFormat;
+import org.apache.hadoop.mapreduce.lib.input.KeyValueTextInputFormat;
 import org.apache.hadoop.util.GenericOptionsParser;
 
 import java.io.IOException;
@@ -220,6 +221,7 @@ public class CrimesCount {
          job.setMapperClass(Part2Mapper.class);
          job.setCombinerClass(Part2Reducer.class);
          job.setReducerClass(Part2Reducer.class);
+         job.setInputFormatClass(KeyValueTextInputFormat.class);
          job.setOutputKeyClass(Text.class);
          job.setOutputValueClass(Text.class);
          FileInputFormat.addInputPath(job, new Path(input));
