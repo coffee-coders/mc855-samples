@@ -23,7 +23,7 @@ import static java.util.stream.Collectors.toSet;
 
 public class CrimesCount {
 
-    private static final double MAX_DISTANCE = 1D;
+    private static final double MAX_DISTANCE = 400D;
 
     public static class Part1Mapper extends Mapper<Object, Text, Text, Text> {
 
@@ -167,23 +167,22 @@ public class CrimesCount {
 
             for (Point p : points) {
                 Optional<Point> max = points.stream()
-                        .filter(t -> !t.equals(p))
                         .filter(t -> p.distance(t) < MAX_DISTANCE)
                         .max(new Comparator<Point>() {
-
 							@Override
 							public int compare(Point o1, Point o2) {
 								return Integer.compare(o1.crimeCount, o2.crimeCount);
 							}
 						});
                 if(max.isPresent()){
-                	Point point = max.get();
-	                wordKey.set(point.x + "_" + point.y);
-	                try {
-	                    context.write(key, new Text(wordKey + "_" + new IntWritable(point.crimeCount)));
-	                } catch (Exception e) {
-	                    throw new RuntimeException(e);
-	                }
+                	if(p.equals(max.get())){
+    	                wordKey.set(p.x + "_" + p.y);
+    	                try {
+    	                    context.write(key, new Text(wordKey + "_" + new IntWritable(p.crimeCount)));
+    	                } catch (Exception e) {
+    	                    throw new RuntimeException(e);
+    	                }
+                    }
                 }
             }
         }
