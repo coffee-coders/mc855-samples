@@ -165,25 +165,23 @@ public class CrimesCount {
                     .map(t -> new Point(Double.valueOf(t[0]), Double.valueOf(t[1]), Integer.valueOf(t[2])))
                     .collect(toSet());
 
-            for (Point p : points) {
-                Optional<Point> max = points.stream()
-                        .filter(t -> p.distance(t) < MAX_DISTANCE)
-                        .max(new Comparator<Point>() {
-							@Override
-							public int compare(Point o1, Point o2) {
-								return Integer.compare(o1.crimeCount, o2.crimeCount);
-							}
-						});
-                if(max.isPresent()){
-                	if(p.equals(max.get())){
-    	                wordKey.set(p.x + "_" + p.y);
-    	                try {
-    	                    context.write(key, new Text(wordKey + "_" + new IntWritable(p.crimeCount)));
-    	                } catch (Exception e) {
-    	                    throw new RuntimeException(e);
-    	                }
-                    }
-                }
+            Comparator<Point> comparator = new Comparator<Point>() {
+                        @Override
+                        public int compare(Point o1, Point o2) {
+                            return Integer.compare(o1.crimeCount, o2.crimeCount);
+                        }
+                    };
+                  
+            Optional<Point> max = points.stream()
+                    .max(comparator);
+            if(max.isPresent()){
+            	Point p = max.get();
+	            wordKey.set(p.x + "_" + p.y);
+	            try {
+	                context.write(key, new Text(wordKey + "_" + new IntWritable(p.crimeCount)));
+	            } catch (Exception e) {
+	                throw new RuntimeException(e);
+	            }
             }
         }
     }
