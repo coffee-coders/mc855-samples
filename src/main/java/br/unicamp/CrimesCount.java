@@ -2,24 +2,23 @@ package br.unicamp;
 
 import org.apache.hadoop.conf.Configuration;
 import org.apache.hadoop.fs.Path;
-import org.apache.hadoop.io.IntWritable;
 import org.apache.hadoop.io.Text;
 import org.apache.hadoop.mapreduce.Job;
 import org.apache.hadoop.mapreduce.Mapper;
 import org.apache.hadoop.mapreduce.Reducer;
 import org.apache.hadoop.mapreduce.lib.input.FileInputFormat;
-import org.apache.hadoop.mapreduce.lib.output.FileOutputFormat;
 import org.apache.hadoop.mapreduce.lib.input.KeyValueTextInputFormat;
+import org.apache.hadoop.mapreduce.lib.output.FileOutputFormat;
 import org.apache.hadoop.util.GenericOptionsParser;
 
 import java.io.IOException;
-import java.util.Comparator;
 import java.util.Optional;
 import java.util.Set;
 import java.util.stream.Collectors;
 import java.util.stream.StreamSupport;
 
 import static java.util.stream.Collectors.toSet;
+import static org.jooq.lambda.Unchecked.runnable;
 
 public class CrimesCount {
 
@@ -38,7 +37,7 @@ public class CrimesCount {
                 wordValue.set(Double.valueOf(columns[8]) + "_" + Double.valueOf(columns[7])); // X_Y
                 context.write(wordKey, wordValue);
             } catch (Exception e) {
-                //do nothing
+                // do nothing
             }
         }
     }
@@ -87,18 +86,15 @@ public class CrimesCount {
         }
 
         public double distance(Point t) {
-          //http://andrew.hedges.name/experiments/haversine/
+            // http://andrew.hedges.name/experiments/haversine/
 
-          double earthRadius = 6371000; //meters
-          double dLat = Math.toRadians(this.x-t.x);
-          double dLng = Math.toRadians(this.y-t.y);
-          double a = Math.pow(Math.sin(dLat/2), 2) +
-          Math.cos(Math.toRadians(this.x)) * Math.cos(Math.toRadians(t.x)) *
-          Math.pow(Math.sin(dLng/2), 2);
-          double c = 2 * Math.atan2(Math.sqrt(a), Math.sqrt(1-a));
-          float dist = (float) (earthRadius * c);
-
-          return dist;
+            double earthRadius = 6371000; // meters
+            double dLat = Math.toRadians(this.x - t.x);
+            double dLng = Math.toRadians(this.y - t.y);
+            double a = Math.pow(Math.sin(dLat / 2), 2) +
+                Math.cos(Math.toRadians(this.x)) * Math.cos(Math.toRadians(t.x)) * Math.pow(Math.sin(dLng / 2), 2);
+            double c = 2 * Math.atan2(Math.sqrt(a), Math.sqrt(1 - a));
+            return (float) (earthRadius * c);
         }
     }
 
@@ -138,18 +134,14 @@ public class CrimesCount {
                             Collectors.groupingBy(Pair::getLeft, Collectors.reducing(0, Pair::getRight, Integer::sum)))
                         .forEach((point, friends) -> {
 
-                            wordKey.set(point.x + "_" + point.y);
-                            try {
-                                context.write(key, new Text(wordKey + "_" + new IntWritable(friends)));
-                            } catch (Exception e) {
-                                throw new RuntimeException(e);
-                            }
+                            wordKey.set(point.x + "_" + point.y + "_" + friends);
+                            runnable(() -> context.write(key, wordKey)).run();
                         });
             }
         }
     }
 
-    //Identity mapper
+    // Identity mapper
     public static class Part2Mapper extends Mapper<Text, Text, Text, Text> {
         public void map(Text key, Text value, Context context) throws IOException, InterruptedException {
             context.write(key, value);
@@ -165,24 +157,13 @@ public class CrimesCount {
                     .map(t -> new Point(Double.valueOf(t[0]), Double.valueOf(t[1]), Integer.valueOf(t[2])))
                     .collect(toSet());
 
-            Comparator<Point> comparator = new Comparator<Point>() {
-                        @Override
-                        public int compare(Point o1, Point o2) {
-                            return Integer.compare(o1.crimeCount, o2.crimeCount);
-                        }
-                    };
-                  
-            Optional<Point> max = points.stream()
-                    .max(comparator);
-            if(max.isPresent()){
-            	Point p = max.get();
-	            wordKey.set(p.x + "_" + p.y);
-	            try {
-	                context.write(key, new Text(wordKey + "_" + new IntWritable(p.crimeCount)));
-	            } catch (Exception e) {
-	                throw new RuntimeException(e);
-	            }
-            }
+            // discover where the crime with type X more occurred (considering the friends of the point)
+            Optional<Point> max = points.stream().max((o1, o2) -> Integer.compare(o1.crimeCount, o2.crimeCount));
+
+            max.ifPresent((p) -> {
+                wordKey.set(p.x + "_" + p.y + "_" + p.crimeCount);
+                runnable(() -> context.write(key, wordKey)).run();
+            });
         }
     }
 
@@ -213,17 +194,17 @@ public class CrimesCount {
     }
 
     private static void runPart2(Configuration conf, String input, String output) throws Exception {
-         Job job = Job.getInstance(conf, "crimes count - part 2");
-         job.setJarByClass(CrimesCount.class);
-         job.setMapperClass(Part2Mapper.class);
-         job.setCombinerClass(Part2Reducer.class);
-         job.setReducerClass(Part2Reducer.class);
-         job.setInputFormatClass(KeyValueTextInputFormat.class);
-         job.setOutputKeyClass(Text.class);
-         job.setOutputValueClass(Text.class);
-         FileInputFormat.addInputPath(job, new Path(input));
-         FileOutputFormat.setOutputPath(job, new Path(output));
+        Job job = Job.getInstance(conf, "crimes count - part 2");
+        job.setJarByClass(CrimesCount.class);
+        job.setMapperClass(Part2Mapper.class);
+        job.setCombinerClass(Part2Reducer.class);
+        job.setReducerClass(Part2Reducer.class);
+        job.setInputFormatClass(KeyValueTextInputFormat.class);
+        job.setOutputKeyClass(Text.class);
+        job.setOutputValueClass(Text.class);
+        FileInputFormat.addInputPath(job, new Path(input));
+        FileOutputFormat.setOutputPath(job, new Path(output));
 
-         job.waitForCompletion(true);
+        job.waitForCompletion(true);
     }
 }
